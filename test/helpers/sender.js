@@ -15,7 +15,7 @@ exports = module.exports = function Sender (options) {
 
   var that = {};
 
-  var smtpTransport = nodemailer.createTransport('SMTP', options);
+  var smtpTransport = nodemailer.createTransport(options);
 
   that.send = function (to, callback) {
 

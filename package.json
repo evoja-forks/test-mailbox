@@ -10,18 +10,18 @@
   },
   "main": "index",
   "engines": {
-    "node": ">= 0.8.0"
+    "node": ">= 12.22.12"
   },
   "scripts": {
     "test": "make test"
   },
   "dependencies": {
-    "simplesmtp": "0.x.x",
+    "smtp-server": "3.13.3",
     "mailparser": "0.x.x"
   },
   "devDependencies": {
-    "mocha": "1.x.x",
+    "mocha": "10.3.0",
     "should": "1.x.x",
-    "nodemailer": "0.x.x"
+    "nodemailer": "6.9.12"
   }
 }

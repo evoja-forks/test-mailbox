@@ -25,8 +25,10 @@ describe('Test Mailbox', function () {
   beforeEach(function (done) {
     sender = new Sender({
       from: 'TestApplication@localhost',
+      name: 'localhost',
       host: 'localhost',
-      secureConnection: true,
+      secure: true,
+      tls: {rejectUnauthorized: false},
       port: port,
       auth: auth
     });
@@ -112,7 +114,8 @@ describe('Test Mailbox', function () {
         var badUser = new Sender({
           from: 'TestApplication@localhost',
           host: 'localhost',
-          secureConnection: true,
+          secure: true,
+          tls: {rejectUnauthorized: false},
           port: port,
           auth: {
             user: 'NotTestApplication',
@@ -123,7 +126,8 @@ describe('Test Mailbox', function () {
         var badPass = new Sender({
           from: 'TestApplication@localhost',
           host: 'localhost',
-          secureConnection: true,
+          secure: true,
+          tls: {rejectUnauthorized: false},
           port: port,
           auth: {
             user: auth.user,
