@@ -10,14 +10,14 @@
   },
   "main": "index",
   "engines": {
-    "node": ">= 12.22.12"
+    "node": ">= 14.21.3"
   },
   "scripts": {
     "test": "make test"
   },
   "dependencies": {
     "smtp-server": "3.13.3",
-    "mailparser": "0.x.x"
+    "mailparser": "3.6.9"
   },
   "devDependencies": {
     "mocha": "10.3.0",
