@@ -1,0 +1,115 @@
+# This workflow runs tests on every push. By doing that we ensure that everything is buildable.
+
+name: Test and publish
+on:
+  push:
+    tags:
+      - 'v*'
+
+env:
+  NPM_REGISTRY_HOST: 'npm.pkg.github.com'
+
+
+jobs:
+  test:
+    name: Test
+
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
+          - macos-latest
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout the repo
+        uses: actions/checkout@v4.1.1
+
+      - name: configure node 21
+        uses: actions/setup-node@v4.0.2
+        with:
+          node-version: 21
+      - name: Install dependencies
+        run: npm ci
+      - name: Run tests
+        run: npm test
+
+      - name: configure node 20
+        uses: actions/setup-node@v4.0.2
+        with:
+          node-version: 20
+      - name: Install dependencies
+        run: npm ci
+      - name: Run tests
+        run: npm test
+
+      - name: configure node 14
+        uses: actions/setup-node@v4.0.2
+        with:
+          node-version: 14
+      - name: Install dependencies
+        run: npm ci
+      - name: Run tests
+        run: npm test
+
+  publish:
+    name: Publish
+
+    needs: test
+    permissions:
+      packages: write # required for pushing to GitHub Packages Docker Registry
+      contents: read # required for checking out the repository
+
+    runs-on: ubuntu-latest
+
+    env:
+      # Defines whether we should push images to GitHub Packages Docker Registry
+      # if it's `true` then we push
+      # otherwise we just build
+      JS_PROJ: '.'
+      REF: ${{ github.ref }}
+      PUBLISH:  ${{ startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch' }}
+
+    steps:
+      - name: Checkout the repo
+        uses: actions/checkout@v4.1.1
+
+      - name: Install node@20.11.1
+        uses: actions/setup-node@v4.0.2
+        with:
+          node-version: 20.11.1
+
+      - name: Check environment
+        run: |
+          docker --version
+          docker-compose --version
+          echo "node: $(node --version)"
+          echo "npm:  $(npm --version)"
+          echo "yarn: $(yarn --version)"
+
+      - name: Calculate package and tag versions
+        if: ${{ env.PUBLISH == 'true' }}
+        run: |
+          echo PACKAGE_VERSION=$(node -p "require('./$JS_PROJ/package.json').version") >> $GITHUB_ENV
+          echo TAG_VERSION=$(echo $REF | sed -E 's/refs\/tags\/(dev-)?v(.*)/\2/') >> $GITHUB_ENV
+
+      - name: Compare package and tag versions -> should be equal
+        if: ${{ env.PUBLISH == 'true' }}
+        # The step fails if they are not equal
+        run: ${{env.PACKAGE_VERSION == env.TAG_VERSION}}
+      
+      - name: Authenticate with GitHub package registry
+        if: ${{ env.PUBLISH == 'true' }}
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+        run: |
+          echo "registry=https://$NPM_REGISTRY_HOST/" > ~/.npmrc
+          echo "//$NPM_REGISTRY_HOST/:_authToken=$NODE_AUTH_TOKEN" >> ~/.npmrc
+
+      - name: Publish the NPM library to GitHub package registry
+        if: ${{ env.PUBLISH == 'true' }}
+        run: |
+          cat ~/.npmrc
+          cd ${{env.JS_PROJ}} && npm publish
