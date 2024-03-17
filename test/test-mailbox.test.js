@@ -171,7 +171,7 @@ describe('Test Mailbox', function () {
 
     it('should callback with mail', function (done) {
       mailbox.once('newMail', function (mail) {
-        mail.html.should.include('<title>Example Email</title>');
+        mail.html.should.match(new RegExp('.*<title>Example Email</title>.*'));
         done();
       })
       sender.send(userAddress, function (err, res) {
